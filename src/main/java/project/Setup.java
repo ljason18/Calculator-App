@@ -15,11 +15,11 @@ public class Setup extends VBox {
     Label result;
     TilePane numPad;
     Button[] numbers;
-    String[] labels = {"%", "CE", "C", "Undo", "1/x", "x^2", "sqrt(x)",
-        "/", "7", "8", "9", "x", "4", "5", "6", "-", "1", "2", "3", "+", "+/-", "0", "." , "="};
+    String[] labels = { "%", "CE", "C", "Undo", "1/x", "x^2", "sqrt(x)",
+            "/", "7", "8", "9", "x", "4", "5", "6", "-", "1", "2", "3", "+", "+/-", "0", ".", "=" };
     double answer;
     String operation = "";
-    
+
     public Setup() {
         super();
         this.setSpacing(4);
@@ -35,7 +35,7 @@ public class Setup extends VBox {
         numPad.setHgap(4);
         numPad.setVgap(4);
         numPad.setPrefColumns(4);
-        
+
         numbers = new Button[24];
         for (int num = 0; num < 24; num++) {
             numbers[num] = new Button(labels[num]);
@@ -49,7 +49,7 @@ public class Setup extends VBox {
             else if (num == 3)
                 numbers[num].setOnAction(undo);
             else if (num == 4)
-                numbers[num].setOnAction(flip);    
+                numbers[num].setOnAction(flip);
             else if (num == 5)
                 numbers[num].setOnAction(square);
             else if (num == 6)
@@ -66,26 +66,25 @@ public class Setup extends VBox {
 
         for (Button press : numbers) {
             numPad.getChildren().add(press);
-        } //  for
+        } // for
 
         this.getChildren().addAll(displayInput, result, numPad);
     } // Setup
 
     EventHandler<ActionEvent> input = event -> {
+        displayInput.setText(displayInput.getText() + ((Labeled) event.getSource()).getText());
         if (!result.getText().equals("")) {
-            displayInput.setText("");
             result.setText("");
             answer = 0;
         }
-        displayInput.setText(displayInput.getText() + ((Labeled) event.getSource()).getText());
-    }; 
+    };
 
     EventHandler<ActionEvent> undo = event -> {
         if (!displayInput.getText().equals("")) {
-            displayInput.setText(displayInput.getText().substring(0,displayInput.getText().length()-1));
+            displayInput.setText(displayInput.getText().substring(0, displayInput.getText().length() - 1));
         }
-    }; 
-    
+    };
+
     EventHandler<ActionEvent> clear = event -> {
         if (!operation.equals("")) {
             int cutoff = displayInput.getText().indexOf(operation);
@@ -96,14 +95,14 @@ public class Setup extends VBox {
             answer = 0;
             operation = "";
         }
-    }; 
+    };
 
     EventHandler<ActionEvent> reset = event -> {
         displayInput.setText("");
         result.setText("");
         answer = 0;
         operation = "";
-    }; 
+    };
 
     EventHandler<ActionEvent> percent = event -> {
         double percentage = 0;
@@ -117,32 +116,42 @@ public class Setup extends VBox {
             operation = "";
         }
         answer = percentage;
-    }; 
+    };
 
     EventHandler<ActionEvent> operator = event -> {
-        if (answer == 0) {
+        if (result.getText().equals("")) {
             answer = Double.valueOf(displayInput.getText());
             displayInput.setText(displayInput.getText() + ((Labeled) event.getSource()).getText());
-            operation = displayInput.getText().substring(displayInput.getText().length()-1);
+            operation = displayInput.getText().substring(displayInput.getText().length() - 1);
         } else {
-            int position = displayInput.getText().indexOf(operation);
-            double value = Double.valueOf(displayInput.getText().substring(position+1));
-            calculate(operation, value);
-            displayInput.setText(Double.toString(answer) + ((Labeled) event.getSource()).getText());
-            operation = displayInput.getText().substring(displayInput.getText().length()-1);
+            answer = Double.valueOf(result.getText());
+            displayInput.setText(result.getText() + ((Labeled) event.getSource()).getText());
+            result.setText("");
+            operation = displayInput.getText().substring(displayInput.getText().length() - 1);
         } // if
     }; // operator
 
     EventHandler<ActionEvent> changeSigns = event -> {
-        if (displayInput.getText().substring(0,1).equals("-"))
-            displayInput.setText(displayInput.getText().substring(1));
-        else
-            displayInput.setText("-" + displayInput.getText());
+        if (result.getText().equals("")) {
+            if (displayInput.getText().substring(0, 1).equals("-"))
+                displayInput.setText(displayInput.getText().substring(1));
+            else
+                displayInput.setText("-" + displayInput.getText());
+        } else {
+            if (result.getText().substring(0, 1).equals("-")) {
+                displayInput.setText(result.getText().substring(1));
+                result.setText("");
+            } else {
+                displayInput.setText("-" + result.getText());
+                result.setText("");
+
+            }
+        }
     };
 
     EventHandler<ActionEvent> enter = event -> {
         int position = displayInput.getText().indexOf(operation);
-        double secondFactor = Double.valueOf(displayInput.getText().substring(position+1));
+        double secondFactor = Double.valueOf(displayInput.getText().substring(position + 1));
         calculate(operation, secondFactor);
         displayInput.setText(displayInput.getText() + ((Labeled) event.getSource()).getText());
         result.setText(Double.toString(answer));
@@ -152,49 +161,72 @@ public class Setup extends VBox {
 
     EventHandler<ActionEvent> flip = event -> {
         double temp;
-        if (!operation.equals("")) {
-            int cutoff = displayInput.getText().indexOf(operation);
-            temp = Double.valueOf(displayInput.getText().substring(cutoff + 1));
-            temp = 1 / temp;
-            displayInput.setText(displayInput.getText().substring(0, cutoff + 1) + temp);
+        if (result.getText().equals("")) {
+            if (!operation.equals("")) {
+                int cutoff = displayInput.getText().indexOf(operation);
+                temp = Double.valueOf(displayInput.getText().substring(cutoff + 1));
+                temp = 1 / temp;
+                displayInput.setText(displayInput.getText().substring(0, cutoff + 1) + temp);
+            } else {
+                temp = Double.valueOf(displayInput.getText());
+                temp = 1 / temp;
+                displayInput.setText(Double.toString(temp));
+            }
         } else {
-            temp = Double.valueOf(displayInput.getText());
+            temp = Double.valueOf(result.getText());
             temp = 1 / temp;
+            answer = temp;
             displayInput.setText(Double.toString(temp));
+            result.setText("");
         }
     };
 
     EventHandler<ActionEvent> square = event -> {
         double temp;
-        if (!operation.equals("")) {
-            int cutoff = displayInput.getText().indexOf(operation);
-            temp = Double.valueOf(displayInput.getText().substring(cutoff + 1));
-            temp = Math.pow(temp,2);
-            displayInput.setText(displayInput.getText().substring(0, cutoff + 1) + temp);
+        if (result.getText().equals("")) {
+            if (!operation.equals("")) {
+                int cutoff = displayInput.getText().indexOf(operation);
+                temp = Double.valueOf(displayInput.getText().substring(cutoff + 1));
+                temp = Math.pow(temp, 2);
+                displayInput.setText(displayInput.getText().substring(0, cutoff + 1) + temp);
+            } else {
+                temp = Double.valueOf(displayInput.getText());
+                temp = Math.pow(temp, 2);
+                displayInput.setText(Double.toString(temp));
+            }
         } else {
-            temp = Double.valueOf(displayInput.getText());
-            temp = Math.pow(temp,2);
+            temp = Double.valueOf(result.getText());
+            temp = Math.pow(temp, 2);
+            answer = temp;
             displayInput.setText(Double.toString(temp));
+            result.setText("");
         }
     };
 
     EventHandler<ActionEvent> root = event -> {
-       double temp;
-        if (!operation.equals("")) {
-            int cutoff = displayInput.getText().indexOf(operation);
-            temp = Double.valueOf(displayInput.getText().substring(cutoff + 1));
-            temp = Math.sqrt(temp);
-            displayInput.setText(displayInput.getText().substring(0, cutoff + 1) + temp);
+        double temp;
+        if (result.getText().equals("")) {
+            if (!operation.equals("")) {
+                int cutoff = displayInput.getText().indexOf(operation);
+                temp = Double.valueOf(displayInput.getText().substring(cutoff + 1));
+                temp = Math.sqrt(temp);
+                displayInput.setText(displayInput.getText().substring(0, cutoff + 1) + temp);
+            } else {
+                temp = Double.valueOf(displayInput.getText());
+                temp = Math.sqrt(temp);
+                displayInput.setText(Double.toString(temp));
+            }
         } else {
-            temp = Double.valueOf(displayInput.getText());
+            temp = Double.valueOf(result.getText());
             temp = Math.sqrt(temp);
+            answer = temp;
             displayInput.setText(Double.toString(temp));
+            result.setText("");
         }
     };
 
     private void calculate(String operation, double second) {
-        switch (operation) 
-        { 
+        switch (operation) {
             case "+":
                 answer += second;
                 break;
@@ -207,9 +239,11 @@ public class Setup extends VBox {
                 answer /= second;
                 break;
 
-            case "X":
+            case "x":
                 answer *= second;
-                break;      
+                break;
         } // switch
     } // calculate
+
+    
 } // Setup
