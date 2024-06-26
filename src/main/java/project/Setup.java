@@ -16,7 +16,7 @@ public class Setup extends VBox {
     TilePane numPad;
     Button[] numbers;
     String[] labels = {"%", "CE", "C", "Undo", "1/x", "x^2", "sqrt(x)",
-        "/", "7", "8", "9", "x", "4", "5", "6", "-", "1", "2", "3", "+", "+/-", "0", "." , "="};
+        "/", "7", "8", "9", "*", "4", "5", "6", "-", "1", "2", "3", "+", "+/-", "0", "." , "="};
     double answer;
     String operation = "";
     
@@ -72,14 +72,17 @@ public class Setup extends VBox {
     } // Setup
 
     EventHandler<ActionEvent> input = event -> {
-        if (!result.getText().equals("")) {
-            displayInput.setText("");
-            result.setText("");
-            answer = 0;
+        String inputText = ((Labeled) event.getSource()).getText();
+        if (!inputText.isEmpty() && inputText.matches("[0-9.]+")) {
+            if (!result.getText().equals("") && result.getText() != null && !displayInput.getText().equals(""))  {
+                displayInput.setText("");
+                result.setText("");
+                answer = 0;
+            }
+            displayInput.setText(displayInput.getText() + inputText);
         }
-        displayInput.setText(displayInput.getText() + ((Labeled) event.getSource()).getText());
-    }; 
-
+    };
+    
     EventHandler<ActionEvent> undo = event -> {
         if (!displayInput.getText().equals("")) {
             displayInput.setText(displayInput.getText().substring(0,displayInput.getText().length()-1));
@@ -120,13 +123,18 @@ public class Setup extends VBox {
     }; 
 
     EventHandler<ActionEvent> operator = event -> {
-        if (answer == 0) {
+        if (answer == 0 && result.getText().equals("")) {
             answer = Double.valueOf(displayInput.getText());
             displayInput.setText(displayInput.getText() + ((Labeled) event.getSource()).getText());
             operation = displayInput.getText().substring(displayInput.getText().length()-1);
         } else {
             int position = displayInput.getText().indexOf(operation);
-            double value = Double.valueOf(displayInput.getText().substring(position+1));
+            double value = 0;
+            if (result.getText() != null) {
+                value = Double.valueOf(result.getText().substring(position+1));
+                result.setText(null);
+            } else
+                value = Double.valueOf(displayInput.getText().substring(position+1));
             calculate(operation, value);
             displayInput.setText(Double.toString(answer) + ((Labeled) event.getSource()).getText());
             operation = displayInput.getText().substring(displayInput.getText().length()-1);
@@ -166,15 +174,23 @@ public class Setup extends VBox {
 
     EventHandler<ActionEvent> square = event -> {
         double temp;
-        if (!operation.equals("")) {
-            int cutoff = displayInput.getText().indexOf(operation);
-            temp = Double.valueOf(displayInput.getText().substring(cutoff + 1));
-            temp = Math.pow(temp,2);
-            displayInput.setText(displayInput.getText().substring(0, cutoff + 1) + temp);
-        } else {
-            temp = Double.valueOf(displayInput.getText());
+        System.out.println(result.getText());
+        if (!result.getText().equals("")) {
+            temp = Double.valueOf(result.getText());
             temp = Math.pow(temp,2);
             displayInput.setText(Double.toString(temp));
+            result.setText(null);
+        } else {
+            if (!operation.equals("")) {
+                int cutoff = displayInput.getText().indexOf(operation);
+                temp = Double.valueOf(displayInput.getText().substring(cutoff + 1));
+                temp = Math.pow(temp,2);
+                displayInput.setText(displayInput.getText().substring(0, cutoff + 1) + temp);
+            } else {
+                temp = Double.valueOf(displayInput.getText());
+                temp = Math.pow(temp,2);
+                displayInput.setText(Double.toString(temp));
+            }
         }
     };
 
@@ -193,23 +209,28 @@ public class Setup extends VBox {
     };
 
     private void calculate(String operation, double second) {
-        switch (operation) 
-        { 
+        switch (operation) {
             case "+":
                 answer += second;
                 break;
-
+    
             case "-":
                 answer -= second;
                 break;
-
+    
             case "/":
-                answer /= second;
+                if (second != 0) {
+                    answer /= second;
+                } else {
+                    // Handle division by zero
+                    answer = Double.NaN;
+                }
                 break;
-
-            case "X":
+    
+            case "*":
                 answer *= second;
-                break;      
-        } // switch
-    } // calculate
+                break;
+        }
+    }
+    
 } // Setup
