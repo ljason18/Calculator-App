@@ -142,10 +142,20 @@ public class Setup extends VBox {
     }; // operator
 
     EventHandler<ActionEvent> changeSigns = event -> {
-        if (displayInput.getText().substring(0,1).equals("-"))
-            displayInput.setText(displayInput.getText().substring(1));
-        else
-            displayInput.setText("-" + displayInput.getText());
+        if (!operation.equals("")) {
+            int cutoff = displayInput.getText().indexOf(operation);
+            if (displayInput.getText().substring(cutoff + 1).startsWith("-")) {
+                displayInput.setText(displayInput.getText().substring(0, cutoff + 1) + displayInput.getText().substring(cutoff + 1).substring(1));
+            } else {
+                displayInput.setText(displayInput.getText().substring(0, cutoff + 1) + "-" + displayInput.getText().substring(cutoff + 1));
+            }
+        } else {
+            if (displayInput.getText().startsWith("-")) {
+                displayInput.setText(displayInput.getText().substring(1));
+            } else {
+                displayInput.setText("-" + displayInput.getText());
+            }
+        }
     };
 
     EventHandler<ActionEvent> enter = event -> {
